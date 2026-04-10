@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 public class GameFlowController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private PlayerController player;
+    [SerializeField] private PlayerBallSensor ballSensor;
     [SerializeField] private CameraController cameraController;
     [SerializeField] private UIManager uiManager;
 
@@ -16,28 +16,36 @@ public class GameFlowController : MonoBehaviour
 
     private void Awake()
     {
-        if (player == null)
+        ballSensor = ResolveReference(ballSensor);
+
+        if (ballSensor == null)
         {
-            player = FindObjectOfType<PlayerController>();
+            PlayerController player = FindObjectOfType<PlayerController>();
+            if (player != null)
+            {
+                ballSensor = player.GetComponent<PlayerBallSensor>();
+                if (ballSensor == null)
+                {
+                    ballSensor = player.gameObject.AddComponent<PlayerBallSensor>();
+                }
+            }
         }
 
-        if (cameraController == null)
-        {
-            cameraController = FindObjectOfType<CameraController>();
-        }
+        cameraController = ResolveReference(cameraController);
+        uiManager = ResolveReference(uiManager);
 
-        if (uiManager == null)
+        if (ballSensor == null)
         {
-            uiManager = FindObjectOfType<UIManager>();
+            Debug.LogWarning("GameFlowController: Missing PlayerBallSensor in scene.", this);
         }
     }
 
     private void OnEnable()
     {
-        if (player != null)
+        if (ballSensor != null)
         {
-            player.OnNearBall += HandleNearBall;
-            player.OnLeaveBall += HandleLeaveBall;
+            ballSensor.OnNearBall += HandleNearBall;
+            ballSensor.OnLeaveBall += HandleLeaveBall;
         }
 
         if (uiManager != null)
@@ -50,10 +58,10 @@ public class GameFlowController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (player != null)
+        if (ballSensor != null)
         {
-            player.OnNearBall -= HandleNearBall;
-            player.OnLeaveBall -= HandleLeaveBall;
+            ballSensor.OnNearBall -= HandleNearBall;
+            ballSensor.OnLeaveBall -= HandleLeaveBall;
         }
 
         if (uiManager != null)
@@ -91,13 +99,13 @@ public class GameFlowController : MonoBehaviour
 
     private void HandleAutoKickClicked()
     {
-        if (player == null)
+        if (ballSensor == null)
         {
             return;
         }
 
-        BallController farthest = player.GetFarthestBall();
-        if (farthest == null || farthest.IsFlying)
+        BallController farthest = ballSensor.GetFarthestBall();
+        if (farthest == null || farthest.IsFlying || farthest.IsInGoal)
         {
             return;
         }
@@ -139,5 +147,15 @@ public class GameFlowController : MonoBehaviour
     private void HandleResetClicked()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private static T ResolveReference<T>(T target) where T : Object
+    {
+        if (target != null)
+        {
+            return target;
+        }
+
+        return FindObjectOfType<T>();
     }
 }

@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     private Transform trackedBall;
 
     [Header("Top-Down Offset")]
-    public Vector3 offset = new Vector3(0f, 14f, -6f);
+    public Vector3 offset = new Vector3(0f, 80f, -80f);
     public float smoothSpeed = 8f;
 
     public CameraState State { get; private set; } = CameraState.FollowPlayer;

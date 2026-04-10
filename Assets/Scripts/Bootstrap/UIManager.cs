@@ -5,9 +5,9 @@ using System;
 public class UIManager : MonoBehaviour
 {
     [Header("UI Buttons")]
-    public Button kickButton;
-    public Button autoKickButton;
-    public Button resetButton;
+    [SerializeField] private Button kickButton;
+    [SerializeField] private Button autoKickButton;
+    [SerializeField] private Button resetButton;
 
     public event Action KickClicked;
     public event Action AutoKickClicked;
@@ -15,38 +15,16 @@ public class UIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (kickButton != null)
-        {
-            kickButton.onClick.AddListener(HandleKickClicked);
-        }
-
-        if (autoKickButton != null)
-        {
-            autoKickButton.onClick.AddListener(HandleAutoKickClicked);
-        }
-
-        if (resetButton != null)
-        {
-            resetButton.onClick.AddListener(HandleResetClicked);
-        }
+        ToggleButtonListener(kickButton, HandleKickClicked, true);
+        ToggleButtonListener(autoKickButton, HandleAutoKickClicked, true);
+        ToggleButtonListener(resetButton, HandleResetClicked, true);
     }
 
     private void OnDisable()
     {
-        if (kickButton != null)
-        {
-            kickButton.onClick.RemoveListener(HandleKickClicked);
-        }
-
-        if (autoKickButton != null)
-        {
-            autoKickButton.onClick.RemoveListener(HandleAutoKickClicked);
-        }
-
-        if (resetButton != null)
-        {
-            resetButton.onClick.RemoveListener(HandleResetClicked);
-        }
+        ToggleButtonListener(kickButton, HandleKickClicked, false);
+        ToggleButtonListener(autoKickButton, HandleAutoKickClicked, false);
+        ToggleButtonListener(resetButton, HandleResetClicked, false);
     }
 
     private void Start()
@@ -75,5 +53,22 @@ public class UIManager : MonoBehaviour
     private void HandleResetClicked()
     {
         ResetClicked?.Invoke();
+    }
+
+    private static void ToggleButtonListener(Button button, UnityEngine.Events.UnityAction action, bool subscribe)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        if (subscribe)
+        {
+            button.onClick.AddListener(action);
+        }
+        else
+        {
+            button.onClick.RemoveListener(action);
+        }
     }
 }
